@@ -1052,6 +1052,69 @@
     return hasOwnProperty.call(obj, key);
   };
 
+
+  // Currying Functions
+  // -----------------
+
+  // Add .reversed to Underscore functions, returning a function wrapper which reverses
+  // the argument list.
+
+  _.reversed = function(fn)
+  {
+    var numArgs = fn.length;
+
+    return function()
+    {
+      var args = slice.call(arguments, 0);
+
+      args.reverse();
+      return fn.apply(this, args);      
+    }
+  }
+
+
+
+  //AutoCurry from ScoreUnder.
+  _.autoCurry = function (fn, numArgs) {
+        numArgs = numArgs || fn.length;
+        var f = function () {
+          if (arguments.length < numArgs) {
+            return numArgs - arguments.length > 0 ?
+              autoCurry(curry.apply(this, [fn].concat(toArray(arguments))),
+              numArgs - arguments.length) :
+              curry.apply(this, [fn].concat(toArray(arguments)));
+          } else {
+            return fn.apply(this, arguments);
+          }
+        };
+        f.toString = function(){ return fn.toString(); };
+        f.curried = true;
+        return f;
+      }
+
+
+  
+    //Pepper underscore functions with reversed and autoCurry.
+    _.each(_.functions(_), function(fn)
+    {
+      if (fn.indexOf("native") <= -1 && _[fn].length > 1)
+      {
+      _[fn].reversed = _.reversed(_[fn]);
+      _[fn].autoCurry = function(n) {
+          return _.autoCurry(this, n);
+        };
+      _[fn].reversed.autoCurry = function(n) {
+          return _.autoCurry(this, n);
+        };
+      }
+    })
+    
+
+
+
+
+
+
   // Utility Functions
   // -----------------
 
